@@ -5,6 +5,7 @@ Aplicativo mobile desenvolvido em **React Native (Expo + TypeScript)** para a **
 ---
 
 👥 Integrantes da Equipe
+
 Gabriel Guilherme Leste — RM: 558638
 
 Gabriel Lacerda — RM: 558307
