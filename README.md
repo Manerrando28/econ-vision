@@ -4,6 +4,16 @@ Aplicativo mobile desenvolvido em **React Native (Expo + TypeScript)** para a **
 
 ---
 
+👥 Integrantes da Equipe
+Gabriel Guilherme Leste — RM: 558638
+
+Gabriel Lacerda — RM: 558307
+
+Fernando Carlos — RM: 558095
+
+Julia Carolina — RM: 558896
+_ _ _
+
 ## 📋 Ficha da CitizenTech
 
 * **Nome da CitizenTech:** Econ Vision
@@ -46,7 +56,10 @@ Aplicativo mobile desenvolvido em **React Native (Expo + TypeScript)** para a **
 
 | Radar Urbano | Sensores IoT | Reporte Colaborativo | SOS Emergência |
 | :---: | :---: | :---: | :---: |
-| ![Tela Radar Urbano](./docs/tela-radar.png) | ![Tela Sensores IoT](./docs/tela-sensores.png) | ![Tela Reportar Alagamento](./docs/tela-reportar.png) | ![Tela SOS Emergência](./docs/tela-sos.png) |
+| ![Tela Radar Urbano](./docs/tela-radar.png) | 
+![Tela Sensores IoT](./docs/tela-sensores.png) |
+![Tela Reportar Alagamento](./docs/tela-reportar.png) |
+![Tela SOS Emergência](./docs/tela-sos.png) |
 
 ---
 
@@ -74,14 +87,8 @@ Leia o QR Code no terminal com o aplicativo Expo Go (Android/iOS) ou pressione w
 🎥 Vídeo Demonstrativo (Pitch)
 Link do vídeo (YouTube): [COLE AQUI O LINK DO VÍDEO DE ATÉ 3 MINUTOS]
 
-👥 Integrantes da Equipe
-Gabriel Guilherme Leste — RM: 558638
-
-Gabriel Lacerda — RM: 558307
-
-Fernando Carlos — RM: 558095
-
-Julia Carolina — RM: 558896
-
 🙏 Agradecimentos
-Agradecemos à FIAP e ao corpo docente do curso de Engenharia de Software pela proposta da Global Solution 2026.2 — CitizenTech, que nos desafiou a olhar para problemas reais da cidade e transformar tecnologia em impacto social concreto. Nosso agradecimento especial ao professor da disciplina de Mobile Development & IoT pelas orientações técnicas ao longo do semestre e a todos os cidadãos que inspiraram a construção do Econ Vision.
+Agradecemos à FIAP e ao corpo docente do curso de Engenharia de Software pela proposta da Global Solution 2026.2 — CitizenTech,
+ que nos desafiou a olhar para problemas reais da cidade e transformar tecnologia em impacto social concreto.
+ Nosso agradecimento especial ao professor da disciplina de Mobile Development & IoT pelas orientações
+ técnicas ao longo do semestre e a todos os cidadãos que inspiraram a construção do Econ Vision.
