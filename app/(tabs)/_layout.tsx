@@ -1,68 +1,70 @@
-import { SymbolView } from 'expo-symbols';
-import { Link, Tabs } from 'expo-router';
-import { Platform, Pressable } from 'react-native';
-
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import React from 'react';
+import { Tabs } from 'expo-router';
+import { CloudRain, Radio, MessageSquareWarning, ShieldAlert } from 'lucide-react-native';
+import { COLORS } from '../../src/theme/colors';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
+        headerStyle: {
+          backgroundColor: COLORS.background,
+          borderBottomWidth: 1,
+          borderBottomColor: COLORS.border,
+        },
+        headerTitleStyle: {
+          color: COLORS.textPrimary,
+          fontWeight: '800',
+          fontSize: 18,
+        },
+        tabBarStyle: {
+          backgroundColor: COLORS.surface,
+          borderTopColor: COLORS.border,
+          height: 68,
+          paddingBottom: 10,
+          paddingTop: 8,
+        },
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '700',
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
-            />
-          ),
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable style={{ marginRight: 15 }}>
-                {({ pressed }) => (
-                  <SymbolView
-                    name={{ ios: 'info.circle', android: 'info', web: 'info' }}
-                    size={25}
-                    tintColor={Colors[colorScheme].text}
-                    style={{ opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+          title: 'Radar',
+          headerTitle: 'Econ Vision • Radar Urbano',
+          tabBarIcon: ({ color, size }) => <CloudRain color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="sensors"
+        options={{
+          title: 'Sensores',
+          headerTitle: 'Sensores IoT & Rotas',
+          tabBarIcon: ({ color, size }) => <Radio color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="report"
+        options={{
+          title: 'Reportar',
+          headerTitle: 'Alerta Colaborativo',
+          tabBarIcon: ({ color, size }) => (
+            <MessageSquareWarning color={color} size={size} />
           ),
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="sos"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
-            />
-          ),
+          title: 'SOS',
+          headerTitle: 'Emergência & Guia',
+          tabBarActiveTintColor: '#F87171',
+          tabBarIcon: ({ color, size }) => <ShieldAlert color={color} size={size} />,
         }}
       />
     </Tabs>
