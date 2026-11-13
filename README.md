@@ -73,12 +73,31 @@ _ _ _
 
 ## 📸 Telas do Aplicativo
 
-| Radar Urbano | Sensores IoT | Reporte Colaborativo | SOS Emergência |
-| :---: | :---: | :---: | :---: |
-| ![Radar Urbano](./Radar.jpeg) | 
-| ![Sensores IoT](./sensores.png) |
-| ![Reporte Colaborativo](./reportar.png) |
-| ![SOS Emergência](./sos.png) |
+### 1. Radar Urbano
+Visão geral com meteorologia em tempo real (API Open-Meteo) e alertas críticos dos sensores IoT.
+
+![Radar Urbano](./Radar.jpeg)
+
+---
+
+### 2. Sensores IoT & Rotas Seguras
+Telemetria em centímetros dos módulos ESP32, filtros por gravidade e sugestões de desvio.
+
+![Sensores IoT](./sensores.png)
+
+---
+
+### 3. Alerta Colaborativo (CRUD Local)
+Registro comunitário de alagamentos e bueiros entupidos com persistência offline via AsyncStorage.
+
+![Reporte Colaborativo](./reportar.png)
+
+---
+
+### 4. Emergência & Guia (SOS)
+Acionamento rápido para Defesa Civil (199), Bombeiros (193) e SAMU (192) com protocolo de segurança.
+
+![SOS Emergência](./sos.png)
 
 ---
 
