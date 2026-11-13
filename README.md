@@ -75,7 +75,7 @@ _ _ _
 
 | Radar Urbano | Sensores IoT | Reporte Colaborativo | SOS Emergência |
 | :---: | :---: | :---: | :---: |
-| ![Tela Radar Urbano](./docs/tela-radar.png) | 
+| ![Tela Radar Urbano](./docs/Radar.jpeg) | 
 ![Tela Sensores IoT](./docs/tela-sensores.png) |
 ![Tela Reportar Alagamento](./docs/tela-reportar.png) |
 ![Tela SOS Emergência](./docs/tela-sos.png) |
