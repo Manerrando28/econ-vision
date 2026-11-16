@@ -1,4 +1,4 @@
-# Econ Vision — Monitoramento Preditivo e Colaborativo de Alagamentos
+# Eco Vision — Monitoramento Preditivo e Colaborativo de Alagamentos
 
 Aplicativo mobile desenvolvido em **React Native (Expo + TypeScript)** para a **Global Solution 2026.2 — CitizenTech (FIAP)** na disciplina de **Mobile Development & IoT**.
 
