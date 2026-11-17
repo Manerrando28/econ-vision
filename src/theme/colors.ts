@@ -1,27 +1,28 @@
 import { RiskLevel } from '../types';
 
 export const COLORS = {
-  background: '#0F172A',
-  surface: '#1E293B',
-  surfaceLight: '#334155',
-  primary: '#38BDF8',
-  primaryDark: '#0284C7',
-  textPrimary: '#F8FAFC',
-  textSecondary: '#CBD5E1',
-  textMuted: '#94A3B8',
-  border: '#334155',
+  background: '#0A1218',
+  surface: '#121F28',
+  surfaceLight: '#192A34',
+  primary: '#65E0BB',
+  primaryDark: '#123B34',
+  onPrimary: '#08261F',
+  textPrimary: '#F0F6F8',
+  textSecondary: '#B6C6D0',
+  textMuted: '#91A7B5',
+  border: '#263944',
 
-  normalBg: '#064E3B',
-  normalBorder: '#10B981',
-  normalText: '#6EE7B7',
+  normalBg: '#102F29',
+  normalBorder: '#4DCEA7',
+  normalText: '#83E7C4',
 
-  atencaoBg: '#78350F',
-  atencaoBorder: '#F59E0B',
-  atencaoText: '#FCD34D',
+  atencaoBg: '#332B1B',
+  atencaoBorder: '#E8B65A',
+  atencaoText: '#F3CD83',
 
-  criticoBg: '#7F1D1D',
-  criticoBorder: '#EF4444',
-  criticoText: '#FCA5A5',
+  criticoBg: '#341F26',
+  criticoBorder: '#EF8491',
+  criticoText: '#FFABB5',
 };
 
 export function getRiskStyle(level: RiskLevel) {
@@ -31,21 +32,21 @@ export function getRiskStyle(level: RiskLevel) {
         bg: COLORS.criticoBg,
         border: COLORS.criticoBorder,
         text: COLORS.criticoText,
-        label: 'ALAGAMENTO CRÍTICO',
+        label: 'Crítico',
       };
     case 'ATENCAO':
       return {
         bg: COLORS.atencaoBg,
         border: COLORS.atencaoBorder,
         text: COLORS.atencaoText,
-        label: 'ATENÇÃO / RISCO',
+        label: 'Atenção',
       };
     default:
       return {
         bg: COLORS.normalBg,
         border: COLORS.normalBorder,
         text: COLORS.normalText,
-        label: 'NÍVEL NORMAL',
+        label: 'Normal',
       };
   }
 }

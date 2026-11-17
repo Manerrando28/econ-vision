@@ -17,7 +17,7 @@ _ _ _
 
 ## 📋 Ficha da CitizenTech
 
-* **Nome da CitizenTech:** Econ Vision
+* **Nome da CitizenTech:** Eco Vision
 
 * **Cidade e Bairro:** São Paulo – SP (Foco inicial na região da Av. Paulista, Centro/Anhangabaú e corredores de mobilidade urbana)
 
@@ -65,8 +65,8 @@ _ _ _
 
 ## ♿ Acessibilidade e Inclusão
 
-* **Alto Contraste (WCAG):** Paleta escura com contraste superior a 9:1 entre texto e fundo.
-* **Semântica Visual Redundante:** Status de risco combinam **cor + ícone + texto explícito** (`NÍVEL NORMAL`, `ATENÇÃO / RISCO`, `ALAGAMENTO CRÍTICO`), garantindo leitura clara para pessoas daltônicas e não-especialistas.
+* **Alto Contraste (WCAG):** Sobre os cartões, o texto principal tem contraste de 15,37:1 e o texto auxiliar, de 6,71:1.
+* **Semântica Visual Redundante:** Status de risco combinam **cor + ícone + texto explícito** (`Normal`, `Atenção`, `Crítico`), garantindo leitura clara para pessoas daltônicas e não-especialistas.
 * **Alvos de Toque Amplos & Leitores de Tela:** Uso de `accessibilityRole` e `accessibilityLabel` nos botões principais e acionamento de emergência em 1 toque.
 
 ---
@@ -104,7 +104,7 @@ Acionamento rápido para Defesa Civil (199), Bombeiros (193) e SAMU (192) com pr
 ## 🚀 Como Executar o Projeto
 
 ### Pré-requisitos
-* Node.js (v18 ou superior)
+* Node.js compatível com Expo SDK 58 (22.13+ na linha 22, ou uma versão LTS mais recente suportada)
 * Aplicativo **Expo Go** instalado no celular (Android/iOS) ou navegador Web
 
 ### Passo a passo
@@ -123,6 +123,15 @@ npx expo start -c
 Leia o QR Code no terminal com o aplicativo Expo Go (Android/iOS) ou pressione w para abrir no navegador.
 ```
 
+### Verificação de qualidade
+```bash
+npm run lint
+npm run typecheck
+```
+
+O layout prioriza celulares, com navegação inferior, áreas seguras e campos com suporte ao teclado.
+As leituras dos sensores são simuladas; os registros de ocorrências ficam salvos apenas no dispositivo.
+
 🎥 Vídeo Demonstrativo (Pitch)
 Link do vídeo (YouTube): [COLE AQUI O LINK DO VÍDEO DE ATÉ 3 MINUTOS]
 
@@ -130,4 +139,4 @@ Link do vídeo (YouTube): [COLE AQUI O LINK DO VÍDEO DE ATÉ 3 MINUTOS]
 Agradecemos à FIAP e ao corpo docente do curso de Engenharia de Software pela proposta da Global Solution 2026.2 — CitizenTech,
  que nos desafiou a olhar para problemas reais da cidade e transformar tecnologia em impacto social concreto.
  Nosso agradecimento especial ao professor da disciplina de Mobile Development & IoT pelas orientações
- técnicas ao longo do semestre e a todos os cidadãos que inspiraram a construção do Econ Vision.
+ técnicas ao longo do semestre e a todos os cidadãos que inspiraram a construção do Eco Vision.

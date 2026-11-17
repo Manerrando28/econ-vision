@@ -1,369 +1,222 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import {
-  CloudRain,
-  Droplets,
-  Thermometer,
-  AlertTriangle,
-  ArrowRight,
-  ShieldCheck,
+  AlertTriangle, ArrowRight, CloudRain, CloudSun, Droplets,
+  MessageSquarePlus, RefreshCw, ShieldCheck, Users,
 } from 'lucide-react-native';
+import { PageIntro, Screen, SectionHeading } from '../../src/components/Screen';
+import { SensorCard } from '../../src/components/SensorCard';
 import { COLORS } from '../../src/theme/colors';
 import { fetchLocalWeather } from '../../src/services/weatherApi';
 import { fetchIoTSensors } from '../../src/services/iotSensors';
 import { getReports } from '../../src/storage/reportsDb';
-import { WeatherData, FloodSensor, CitizenReport } from '../../src/types';
-import { RiskBadge } from '../../src/components/RiskBadge';
+import type { CitizenReport, FloodSensor, WeatherData } from '../../src/types';
 
 export default function RadarScreen() {
   const router = useRouter();
-  const [weather, setWeather] = useState<WeatherData>({
-    temperature: 22,
-    precipitation: 3.2,
-    rainProbability: 80,
-    conditionText: 'Alerta de chuva forte na região',
-    isRaining: true,
-  });
+  const [weather, setWeather] = useState<WeatherData | null>(null);
   const [sensors, setSensors] = useState<FloodSensor[]>([]);
   const [reports, setReports] = useState<CitizenReport[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(false);
 
-  const loadDashboard = useCallback(async () => {
-    // Trava de segurança: libera a interface em no máximo 1.5s
-    const safetyTimer = setTimeout(() => {
-      setLoading(false);
-      setRefreshing(false);
-    }, 1500);
+  const loadDashboard = useCallback(() => Promise.all([
+    fetchLocalWeather().then(setWeather),
+    fetchIoTSensors().then(setSensors),
+    getReports().then(setReports),
+  ]).catch(() => {
+    setError(true);
+  }).finally(() => {
+    setLoading(false);
+    setRefreshing(false);
+  }), []);
 
-    try {
-      const [weatherRes, sensorsRes, reportsRes] = await Promise.all([
-        fetchLocalWeather(),
-        fetchIoTSensors(),
-        getReports(),
-      ]);
-      setWeather(weatherRes);
-      setSensors(sensorsRes);
-      setReports(reportsRes);
-    } catch (e) {
-      console.warn('Erro ao sincronizar dashboard:', e);
-    } finally {
-      clearTimeout(safetyTimer);
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadDashboard();
-  }, [loadDashboard]);
+  useEffect(() => { void loadDashboard(); }, [loadDashboard]);
+  useFocusEffect(useCallback(() => {
+    void getReports().then(setReports);
+  }, []));
 
   const onRefresh = () => {
+    setError(false);
     setRefreshing(true);
-    loadDashboard();
+    void loadDashboard();
   };
-
-  const criticalSensors = sensors.filter((s) => s.status === 'CRITICO');
-  const activeReports = reports.filter((r) => !r.resolved);
-
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Sincronizando radar e sensores IoT...</Text>
-      </View>
-    );
-  }
+  const criticalSensors = sensors.filter((sensor) => sensor.status === 'CRITICO');
+  const activeReports = reports.filter((report) => !report.resolved);
+  const hasRisk = criticalSensors.length > 0;
+  const WeatherIcon = weather?.isRaining ? CloudRain : CloudSun;
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={COLORS.primary}
-        />
-      }
-    >
-      {/* Banner de Status Geral */}
-      <View
-        style={[
-          styles.alertBanner,
-          criticalSensors.length > 0 ? styles.alertBannerDanger : styles.alertBannerSafe,
-        ]}
-      >
-        <View style={styles.bannerHeader}>
-          {criticalSensors.length > 0 ? (
-            <AlertTriangle size={24} color="#FCA5A5" />
-          ) : (
-            <ShieldCheck size={24} color="#6EE7B7" />
-          )}
-          <Text style={styles.bannerTitle}>
-            {criticalSensors.length > 0
-              ? `${criticalSensors.length} Pontos Críticos de Alagamento`
-              : 'Circulação Segura na Região'}
-          </Text>
-        </View>
-        <Text style={styles.bannerSubtitle}>
-          {criticalSensors.length > 0
-            ? 'Sensores ESP32 detectaram transbordamento iminente. Verifique rotas alternativas antes de sair.'
-            : 'Nenhuma via bloqueada pelos sensores monitorados no momento.'}
-        </Text>
-      </View>
+    <Screen refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} colors={[COLORS.primary]} />}>
+      <PageIntro
+        eyebrow="SEU RADAR URBANO"
+        title={'Seu caminho,\nmais seguro.'}
+        description="Chuva, alertas e cuidado com a sua região, em um só lugar."
+        action={
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Atualizar radar"
+            accessibilityState={{ disabled: refreshing, busy: refreshing }}
+            disabled={refreshing}
+            onPress={onRefresh}
+            style={styles.refreshButton}
+          >
+            {refreshing ? <ActivityIndicator color={COLORS.primary} /> : <RefreshCw size={18} color={COLORS.textSecondary} />}
+          </TouchableOpacity>
+        }
+      />
 
-      {/* Card de Clima em Tempo Real (API Open-Meteo) */}
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.sectionLabel}>METEOROLOGIA EM TEMPO REAL • SÃO PAULO</Text>
-          <CloudRain size={20} color={COLORS.primary} />
-        </View>
+      {error && <Text accessibilityRole="alert" style={styles.error}>Não foi possível atualizar todos os dados. Toque em atualizar para tentar novamente.</Text>}
 
-        <Text style={styles.conditionText}>{weather.conditionText}</Text>
-
-        <View style={styles.metricsRow}>
-          <View style={styles.metricBox}>
-            <Thermometer size={20} color={COLORS.primary} />
-            <Text style={styles.metricValue}>{weather.temperature}°C</Text>
-            <Text style={styles.metricLabel}>Temperatura</Text>
-          </View>
-
-          <View style={styles.metricBox}>
-            <Droplets size={20} color={COLORS.primary} />
-            <Text style={styles.metricValue}>{weather.precipitation} mm</Text>
-            <Text style={styles.metricLabel}>Chuva Agora</Text>
-          </View>
-
-          <View style={styles.metricBox}>
-            <CloudRain size={20} color={COLORS.primary} />
-            <Text style={styles.metricValue}>{weather.rainProbability}%</Text>
-            <Text style={styles.metricLabel}>Prob. Chuva</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Destaques dos Sensores Críticos */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Alertas dos Sensores IoT</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/sensors')}
-          accessibilityRole="button"
-          accessibilityLabel="Ver todos os sensores IoT"
-        >
-          <Text style={styles.linkText}>Ver todos</Text>
-        </TouchableOpacity>
-      </View>
-
-      {criticalSensors.map((sensor) => (
-        <View key={sensor.id} style={styles.sensorCard}>
-          <View style={styles.sensorTop}>
-            <RiskBadge level={sensor.status} />
-            <Text style={styles.sensorCode}>{sensor.id}</Text>
-          </View>
-          <Text style={styles.sensorName}>{sensor.name}</Text>
-          <Text style={styles.sensorNeighborhood}>{sensor.neighborhood}</Text>
-          <Text style={styles.routeTip}>💡 {sensor.safeRouteTip}</Text>
-        </View>
-      ))}
-
-      {/* Ação Rápida para Reporte Colaborativo */}
       <TouchableOpacity
-        style={styles.ctaButton}
+        style={[styles.alertBanner, hasRisk && styles.alertDanger]}
+        onPress={() => router.push('/sensors')}
+        accessibilityRole="button"
+        accessibilityLabel={loading ? 'Consultando sensores' : `Ver sensores: ${criticalSensors.length} pontos críticos`}
+      >
+        <View style={[styles.alertIcon, hasRisk && styles.alertIconDanger]}>
+          {loading ? <ActivityIndicator color={COLORS.primary} /> : hasRisk
+            ? <AlertTriangle size={22} color={COLORS.criticoText} />
+            : <ShieldCheck size={22} color={COLORS.normalText} />}
+        </View>
+        <View style={styles.alertCopy}>
+          <Text style={[styles.alertEyebrow, hasRisk && styles.dangerText]}>CONDIÇÕES DA REGIÃO</Text>
+          <Text style={styles.alertTitle}>{loading ? 'Consultando sensores…' : hasRisk ? `${criticalSensors.length} pontos críticos` : 'Sem pontos críticos'}</Text>
+          <Text style={styles.alertDescription}>{hasRisk ? 'Confira os trechos e evite áreas de risco.' : 'Consulte as condições dos pontos monitorados.'}</Text>
+        </View>
+        <ArrowRight size={18} color={hasRisk ? COLORS.criticoText : COLORS.primary} />
+      </TouchableOpacity>
+
+      <View style={styles.weatherCard}>
+        <View style={styles.cardTop}>
+          <Text style={styles.cardLabel}>O TEMPO AGORA</Text>
+          <Text style={styles.source}>São Paulo · Open-Meteo</Text>
+        </View>
+        {weather ? (
+          <>
+            <View style={styles.weatherMain}>
+              <View style={styles.temperatureRow}>
+                <Text style={styles.temperature}>{weather.temperature}°</Text>
+                <Text style={styles.celsius}>C</Text>
+              </View>
+              <View style={styles.weatherIcon}>
+                <WeatherIcon size={48} strokeWidth={1.3} color={COLORS.primary} />
+              </View>
+            </View>
+            <Text style={styles.condition}>{weather.conditionText}</Text>
+            <View style={styles.weatherMetrics}>
+              <View style={styles.metric}>
+                <Droplets size={17} color={COLORS.primary} />
+                <View style={styles.metricCopy}>
+                  <Text style={styles.metricValue}>{weather.precipitation} <Text style={styles.unit}>mm</Text></Text>
+                  <Text style={styles.metricLabel}>Chuva agora</Text>
+                </View>
+              </View>
+              <View style={styles.metricDivider} />
+              <View style={styles.metric}>
+                <CloudRain size={17} color={COLORS.primary} />
+                <View style={styles.metricCopy}>
+                  <Text style={styles.metricValue}>{weather.rainProbability}<Text style={styles.unit}>%</Text></Text>
+                  <Text style={styles.metricLabel}>Chance de chuva</Text>
+                </View>
+              </View>
+            </View>
+          </>
+        ) : (
+          <View style={styles.weatherLoading}>
+            <ActivityIndicator color={COLORS.primary} />
+            <Text style={styles.metricLabel}>Buscando a previsão local…</Text>
+          </View>
+        )}
+      </View>
+
+      <SectionHeading
+        title="Pontos de atenção"
+        subtitle="Priorize um trajeto mais seguro."
+        action={
+          <TouchableOpacity style={styles.seeAll} onPress={() => router.push('/sensors')} accessibilityRole="button" accessibilityLabel="Ver todos os sensores">
+            <Text style={styles.link}>Ver todos</Text>
+            <ArrowRight size={14} color={COLORS.primary} />
+          </TouchableOpacity>
+        }
+      />
+      {criticalSensors.map((sensor) => <SensorCard key={sensor.id} sensor={sensor} />)}
+      {!loading && criticalSensors.length === 0 && (
+        <View style={styles.emptyState}>
+          <ShieldCheck size={22} color={COLORS.primary} />
+          <Text style={styles.emptyCopy}>Nenhum sensor em nível crítico neste momento.</Text>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={styles.communityCard}
         onPress={() => router.push('/report')}
         accessibilityRole="button"
-        accessibilityLabel="Registrar novo ponto de alagamento"
+        accessibilityLabel="Registrar ocorrência no seu bairro"
+        activeOpacity={0.8}
       >
-        <View style={{ flex: 1 }}>
-          <Text style={styles.ctaTitle}>Viu um bueiro entupido ou rua alagada?</Text>
-          <Text style={styles.ctaSubtitle}>
-            {activeReports.length} ocorrências ativas registradas pela comunidade
-          </Text>
+        <View style={styles.communityTop}>
+          <View style={styles.communityIcon}><MessageSquarePlus size={22} color={COLORS.primary} /></View>
+          <View style={styles.communityBadge}><Users size={12} color={COLORS.primary} /><Text style={styles.communityBadgeText}>COMUNIDADE</Text></View>
         </View>
-        <ArrowRight size={24} color="#0F172A" />
+        <Text style={styles.communityTitle}>Seu olhar faz a diferença.</Text>
+        <Text style={styles.communityDescription}>Viu uma rua alagada ou um bueiro entupido? Registre o que está acontecendo.</Text>
+        <View style={styles.communityAction}>
+          <Text style={styles.communityActionText}>Reportar ocorrência</Text>
+          <ArrowRight size={18} color={COLORS.onPrimary} />
+        </View>
+        <Text style={styles.communityFooter}>{activeReports.length} ocorrências ativas salvas neste dispositivo</Text>
       </TouchableOpacity>
-    </ScrollView>
+      <Text style={styles.disclaimer}>Sensores em demonstração · Não substitui alertas oficiais.</Text>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 32,
-    gap: 16,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 12,
-  },
-  loadingText: {
-    color: COLORS.textSecondary,
-    fontSize: 15,
-  },
-  alertBanner: {
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    gap: 8,
-  },
-  alertBannerDanger: {
-    backgroundColor: COLORS.criticoBg,
-    borderColor: COLORS.criticoBorder,
-  },
-  alertBannerSafe: {
-    backgroundColor: COLORS.normalBg,
-    borderColor: COLORS.normalBorder,
-  },
-  bannerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  bannerTitle: {
-    color: COLORS.textPrimary,
-    fontSize: 17,
-    fontWeight: '800',
-    flex: 1,
-  },
-  bannerSubtitle: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    gap: 12,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sectionLabel: {
-    color: COLORS.textMuted,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-  },
-  conditionText: {
-    color: COLORS.textPrimary,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  metricsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-    marginTop: 4,
-  },
-  metricBox: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    padding: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    gap: 4,
-  },
-  metricValue: {
-    color: COLORS.textPrimary,
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  metricLabel: {
-    color: COLORS.textMuted,
-    fontSize: 12,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  sectionTitle: {
-    color: COLORS.textPrimary,
-    fontSize: 17,
-    fontWeight: '800',
-  },
-  linkText: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  sensorCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    gap: 6,
-  },
-  sensorTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  sensorCode: {
-    color: COLORS.textMuted,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  sensorName: {
-    color: COLORS.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  sensorNeighborhood: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-  },
-  routeTip: {
-    color: COLORS.primary,
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 6,
-    backgroundColor: COLORS.background,
-    padding: 10,
-    borderRadius: 8,
-  },
-  ctaButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 14,
-    padding: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  ctaTitle: {
-    color: '#0F172A',
-    fontSize: 15,
-    fontWeight: '800',
-  },
-  ctaSubtitle: {
-    color: '#1E293B',
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 2,
-  },
+  refreshButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surface },
+  error: { color: COLORS.criticoText, fontSize: 13, lineHeight: 20 },
+  alertBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 18, borderWidth: 1, borderColor: '#285447', backgroundColor: COLORS.normalBg },
+  alertDanger: { borderColor: '#60333D', backgroundColor: COLORS.criticoBg },
+  alertIcon: { width: 42, height: 42, borderRadius: 13, backgroundColor: COLORS.primaryDark, alignItems: 'center', justifyContent: 'center' },
+  alertIconDanger: { backgroundColor: '#492831' },
+  alertCopy: { flex: 1, gap: 4 },
+  alertEyebrow: { color: COLORS.normalText, fontSize: 8, fontWeight: '700', letterSpacing: 1.2 },
+  dangerText: { color: COLORS.criticoText },
+  alertTitle: { color: COLORS.textPrimary, fontSize: 18, fontWeight: '700', letterSpacing: -0.4 },
+  alertDescription: { color: COLORS.textSecondary, fontSize: 11, lineHeight: 17 },
+  weatherCard: { padding: 20, backgroundColor: COLORS.surface, borderRadius: 22, borderWidth: 1, borderColor: COLORS.border, gap: 12 },
+  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  cardLabel: { color: COLORS.textSecondary, fontSize: 9, fontWeight: '600', letterSpacing: 1.4 },
+  source: { color: COLORS.textMuted, fontSize: 10 },
+  weatherMain: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 3 },
+  temperatureRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  temperature: { color: COLORS.textPrimary, fontSize: 64, lineHeight: 72, fontWeight: '300', letterSpacing: -4, fontVariant: ['tabular-nums'] },
+  celsius: { color: COLORS.textMuted, fontSize: 20, marginTop: 12, marginLeft: 4 },
+  weatherIcon: { width: 76, height: 76, borderRadius: 38, backgroundColor: '#15312F', alignItems: 'center', justifyContent: 'center' },
+  condition: { color: COLORS.textSecondary, fontSize: 14, lineHeight: 21 },
+  weatherMetrics: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: 16, marginTop: 4, gap: 14 },
+  metric: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  metricCopy: { flex: 1, gap: 3 },
+  metricValue: { color: COLORS.textPrimary, fontSize: 18, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  unit: { fontSize: 12, color: COLORS.textMuted, fontWeight: '400' },
+  metricLabel: { color: COLORS.textMuted, fontSize: 10, lineHeight: 16 },
+  metricDivider: { width: 1, height: 32, backgroundColor: COLORS.border },
+  weatherLoading: { minHeight: 180, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  seeAll: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, minHeight: 44, paddingLeft: 8 },
+  link: { color: COLORS.primary, fontSize: 12, fontWeight: '600' },
+  emptyState: { padding: 20, backgroundColor: COLORS.surface, borderRadius: 18, flexDirection: 'row', gap: 12 },
+  emptyCopy: { color: COLORS.textSecondary, fontSize: 13, lineHeight: 20, flex: 1 },
+  communityCard: { backgroundColor: '#102B28', borderRadius: 22, borderWidth: 1, borderColor: '#245247', padding: 20, gap: 12 },
+  communityTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  communityIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primaryDark },
+  communityBadge: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  communityBadgeText: { color: COLORS.primary, fontSize: 9, fontWeight: '600', letterSpacing: 1 },
+  communityTitle: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '600', letterSpacing: -0.5 },
+  communityDescription: { color: COLORS.textSecondary, fontSize: 13, lineHeight: 21 },
+  communityAction: { backgroundColor: COLORS.primary, padding: 15, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 4 },
+  communityActionText: { color: COLORS.onPrimary, fontSize: 14, fontWeight: '700', flex: 1 },
+  communityFooter: { color: COLORS.textMuted, fontSize: 10, textAlign: 'center', lineHeight: 16 },
+  disclaimer: { color: COLORS.textMuted, fontSize: 10, textAlign: 'center', lineHeight: 17 },
 });

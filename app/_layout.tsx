@@ -1,10 +1,12 @@
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
+import Head from 'expo-router/head';
+import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/components/useColorScheme';
+import { COLORS } from '../src/theme/colors';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -43,10 +45,17 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={{
+      ...DarkTheme,
+      colors: { ...DarkTheme.colors, background: COLORS.background, card: COLORS.surface, text: COLORS.textPrimary, primary: COLORS.primary, border: COLORS.border },
+    }}>
+      <Head>
+        <title>Eco Vision</title>
+        <meta name="theme-color" content={COLORS.background} />
+        <meta name="description" content="Monitoramento de alagamentos, alertas locais e orientações de segurança em São Paulo." />
+      </Head>
+      <StatusBar style="light" />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />

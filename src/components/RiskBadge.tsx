@@ -6,29 +6,31 @@ import { getRiskStyle } from '../theme/colors';
 
 interface RiskBadgeProps {
   level: RiskLevel;
+  label?: string;
 }
 
-export function RiskBadge({ level }: RiskBadgeProps) {
+export function RiskBadge({ level, label }: RiskBadgeProps) {
   const style = getRiskStyle(level);
+  const text = label ?? style.label;
 
   const renderIcon = () => {
-    if (level === 'CRITICO') return <OctagonAlert size={16} color={style.text} />;
-    if (level === 'ATENCAO') return <AlertTriangle size={16} color={style.text} />;
-    return <CheckCircle2 size={16} color={style.text} />;
+    if (level === 'CRITICO') return <OctagonAlert size={13} color={style.text} />;
+    if (level === 'ATENCAO') return <AlertTriangle size={13} color={style.text} />;
+    return <CheckCircle2 size={13} color={style.text} />;
   };
 
   return (
     <View
       accessible={true}
       accessibilityRole="text"
-      accessibilityLabel={`Status: ${style.label}`}
+      accessibilityLabel={`Status: ${text}`}
       style={[
         styles.badge,
         { backgroundColor: style.bg, borderColor: style.border },
       ]}
     >
       {renderIcon()}
-      <Text style={[styles.text, { color: style.text }]}>{style.label}</Text>
+      <Text style={[styles.text, { color: style.text }]}>{text}</Text>
     </View>
   );
 }
@@ -39,14 +41,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 6,
+    paddingVertical: 6,
+    borderRadius: 7,
+    gap: 5,
   },
   text: {
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.4,
+    fontSize: 11,
+    fontWeight: '600',
   },
 });

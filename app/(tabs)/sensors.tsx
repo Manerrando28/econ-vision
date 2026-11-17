@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
-import { Radio, Navigation, Clock } from 'lucide-react-native';
-import { COLORS, getRiskStyle } from '../../src/theme/colors';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Info, Radio } from 'lucide-react-native';
+import { PageIntro, Screen, SectionHeading } from '../../src/components/Screen';
+import { SensorCard } from '../../src/components/SensorCard';
+import { COLORS } from '../../src/theme/colors';
 import { fetchIoTSensors } from '../../src/services/iotSensors';
-import { FloodSensor, RiskLevel } from '../../src/types';
-import { RiskBadge } from '../../src/components/RiskBadge';
+import type { FloodSensor, RiskLevel } from '../../src/types';
 
 type FilterOption = 'TODOS' | RiskLevel;
+const FILTERS: { key: FilterOption; label: string }[] = [
+  { key: 'TODOS', label: 'Todos' },
+  { key: 'CRITICO', label: 'Críticos' },
+  { key: 'ATENCAO', label: 'Atenção' },
+  { key: 'NORMAL', label: 'Normais' },
+];
 
 export default function SensorsScreen() {
   const [sensors, setSensors] = useState<FloodSensor[]>([]);
@@ -21,240 +21,86 @@ export default function SensorsScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchIoTSensors().then((data) => {
+    void fetchIoTSensors().then((data) => {
       setSensors(data);
       setLoading(false);
     });
   }, []);
 
-  const filteredSensors =
-    filter === 'TODOS' ? sensors : sensors.filter((s) => s.status === filter);
-
-  const filterButtons: { key: FilterOption; label: string }[] = [
-    { key: 'TODOS', label: 'Todos' },
-    { key: 'CRITICO', label: 'Críticos' },
-    { key: 'ATENCAO', label: 'Atenção' },
-    { key: 'NORMAL', label: 'Normais' },
-  ];
-
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
+  const filteredSensors = filter === 'TODOS' ? sensors : sensors.filter((sensor) => sensor.status === filter);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.subtitle}>
-        Telemetria em tempo real dos módulos ultrassônicos ESP32 instalados em pontos estratégicos.
-      </Text>
+    <Screen>
+      <PageIntro
+        eyebrow="MONITORAMENTO DE VIAS"
+        title="Sensores e rotas"
+        description="Entenda o nível da água e consulte as orientações para cada trecho."
+      />
+      <View style={styles.summary}>
+        <View style={styles.summaryIcon}><Radio size={22} color={COLORS.primary} /></View>
+        <View style={styles.summaryCopy}>
+          <Text style={styles.summaryTitle}>{loading ? 'Consultando a rede…' : `${sensors.length} pontos monitorados`}</Text>
+          <Text style={styles.summarySubtitle}>São Paulo · Módulos ESP32</Text>
+        </View>
+        <View style={styles.demoBadge}><Text style={styles.demoText}>DEMO</Text></View>
+      </View>
 
-      {/* Filtros Acessíveis */}
-      <View style={styles.filterRow}>
-        {filterButtons.map((btn) => {
-          const active = filter === btn.key;
+      <View style={styles.filters}>
+        {FILTERS.map((option) => {
+          const active = filter === option.key;
+          const count = option.key === 'TODOS' ? sensors.length : sensors.filter((sensor) => sensor.status === option.key).length;
           return (
             <TouchableOpacity
-              key={btn.key}
-              onPress={() => setFilter(btn.key)}
+              key={option.key}
+              onPress={() => setFilter(option.key)}
               accessibilityRole="button"
+              accessibilityLabel={`${option.label}, ${count} ${count === 1 ? 'sensor' : 'sensores'}`}
               accessibilityState={{ selected: active }}
-              style={[styles.filterChip, active && styles.filterChipActive]}
+              aria-pressed={active}
+              style={[styles.filter, active && styles.filterActive]}
             >
-              <Text style={[styles.filterText, active && styles.filterTextActive]}>
-                {btn.label}
-              </Text>
+              <Text style={[styles.filterCount, active && styles.filterTextActive]}>{loading ? '–' : count}</Text>
+              <Text style={[styles.filterLabel, active && styles.filterTextActive]}>{option.label}</Text>
             </TouchableOpacity>
           );
         })}
       </View>
 
-      {/* Lista de Sensores */}
-      {filteredSensors.map((sensor) => {
-        const percentage = Math.min(
-          100,
-          Math.round((sensor.waterLevelCm / sensor.maxCapacityCm) * 100)
-        );
-        const riskColors = getRiskStyle(sensor.status);
-
-        return (
-          <View key={sensor.id} style={styles.card}>
-            <View style={styles.cardTop}>
-              <RiskBadge level={sensor.status} />
-              <View style={styles.timeBox}>
-                <Clock size={13} color={COLORS.textMuted} />
-                <Text style={styles.timeText}>{sensor.lastUpdated}</Text>
-              </View>
-            </View>
-
-            <View style={styles.titleRow}>
-              <Radio size={18} color={COLORS.primary} />
-              <Text style={styles.sensorName}>{sensor.name}</Text>
-            </View>
-            <Text style={styles.neighborhood}>
-              Bairro: {sensor.neighborhood} • Módulo {sensor.id}
-            </Text>
-
-            {/* Barra de Nível da Água */}
-            <View style={styles.levelContainer}>
-              <View style={styles.levelHeader}>
-                <Text style={styles.levelLabel}>Nível da Água</Text>
-                <Text style={styles.levelValue}>
-                  {sensor.waterLevelCm} cm / {sensor.maxCapacityCm} cm ({percentage}%)
-                </Text>
-              </View>
-              <View style={styles.progressTrack}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      width: `${percentage}%`,
-                      backgroundColor: riskColors.border,
-                    },
-                  ]}
-                />
-              </View>
-            </View>
-
-            {/* Recomendação de Rota Segura */}
-            <View style={styles.routeBox}>
-              <Navigation size={16} color={COLORS.primary} />
-              <Text style={styles.routeText}>{sensor.safeRouteTip}</Text>
-            </View>
-          </View>
-        );
-      })}
-    </ScrollView>
+      <SectionHeading title="Condições dos trechos" subtitle={loading ? 'Carregando leituras…' : `${filteredSensors.length} ${filteredSensors.length === 1 ? 'sensor encontrado' : 'sensores encontrados'}`} />
+      {loading && <ActivityIndicator color={COLORS.primary} style={styles.loading} accessibilityLabel="Carregando sensores" />}
+      {filteredSensors.map((sensor) => <SensorCard key={sensor.id} sensor={sensor} detailed />)}
+      {!loading && filteredSensors.length === 0 && (
+        <View style={styles.empty}>
+          <Radio size={26} color={COLORS.primary} />
+          <Text style={styles.summaryTitle}>Nenhum sensor nesta categoria</Text>
+          <Text style={styles.emptyText}>Selecione outro filtro para consultar os trechos.</Text>
+        </View>
+      )}
+      <View style={styles.note}>
+        <Info size={15} color={COLORS.textMuted} />
+        <Text style={styles.noteText}>Leituras simuladas para demonstração. As orientações não garantem vias livres; siga sempre os alertas da Defesa Civil.</Text>
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 32,
-    gap: 14,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  subtitle: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  filterChip: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    alignItems: 'center',
-  },
-  filterChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  filterText: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  filterTextActive: {
-    color: '#0F172A',
-    fontWeight: '800',
-  },
-  card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    gap: 10,
-  },
-  cardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  timeBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  timeText: {
-    color: COLORS.textMuted,
-    fontSize: 12,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  sensorName: {
-    color: COLORS.textPrimary,
-    fontSize: 16,
-    fontWeight: '800',
-    flex: 1,
-  },
-  neighborhood: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-  },
-  levelContainer: {
-    gap: 6,
-    marginTop: 4,
-  },
-  levelHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  levelLabel: {
-    color: COLORS.textMuted,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  levelValue: {
-    color: COLORS.textPrimary,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  progressTrack: {
-    height: 10,
-    backgroundColor: COLORS.background,
-    borderRadius: 6,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 6,
-  },
-  routeBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    backgroundColor: COLORS.background,
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 2,
-  },
-  routeText: {
-    color: COLORS.textPrimary,
-    fontSize: 13,
-    lineHeight: 18,
-    flex: 1,
-  },
+  summary: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12, backgroundColor: COLORS.surface, borderRadius: 18, borderWidth: 1, borderColor: COLORS.border },
+  summaryIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: COLORS.primaryDark, alignItems: 'center', justifyContent: 'center' },
+  summaryCopy: { flex: 1, gap: 5 },
+  summaryTitle: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '600', lineHeight: 20 },
+  summarySubtitle: { color: COLORS.textMuted, fontSize: 11, lineHeight: 16 },
+  demoBadge: { backgroundColor: COLORS.surfaceLight, borderRadius: 5, paddingHorizontal: 7, paddingVertical: 5 },
+  demoText: { color: COLORS.textMuted, fontSize: 8, fontWeight: '700', letterSpacing: 1 },
+  filters: { flexDirection: 'row', gap: 7 },
+  filter: { flex: 1, minHeight: 68, borderWidth: 1, borderColor: COLORS.border, borderRadius: 14, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', paddingVertical: 10, gap: 5 },
+  filterActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  filterCount: { color: COLORS.textPrimary, fontSize: 21, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  filterLabel: { color: COLORS.textMuted, fontSize: 10, fontWeight: '500' },
+  filterTextActive: { color: COLORS.onPrimary },
+  loading: { marginVertical: 32 },
+  empty: { padding: 24, borderRadius: 18, backgroundColor: COLORS.surface, alignItems: 'center', gap: 12 },
+  emptyText: { color: COLORS.textMuted, fontSize: 13, textAlign: 'center', lineHeight: 20 },
+  note: { flexDirection: 'row', gap: 9, paddingHorizontal: 4 },
+  noteText: { flex: 1, color: COLORS.textMuted, fontSize: 11, lineHeight: 18 },
 });

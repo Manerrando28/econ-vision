@@ -1,34 +1,40 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { CloudRain, Radio, MessageSquareWarning, ShieldAlert } from 'lucide-react-native';
+import { Radar, Radio, MessageSquarePlus, ShieldAlert } from 'lucide-react-native';
+import { useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../src/theme/colors';
+import { AppHeader } from '../../src/components/AppHeader';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const bottomPadding = Math.max(insets.bottom, 10);
+
   return (
     <Tabs
       screenOptions={{
-        headerStyle: {
-          backgroundColor: COLORS.background,
-          borderBottomWidth: 1,
-          borderBottomColor: COLORS.border,
-        },
-        headerTitleStyle: {
-          color: COLORS.textPrimary,
-          fontWeight: '800',
-          fontSize: 18,
-        },
+        header: () => <AppHeader />,
+        sceneStyle: { backgroundColor: COLORS.background },
+        tabBarHideOnKeyboard: true,
         tabBarStyle: {
-          backgroundColor: COLORS.surface,
+          backgroundColor: COLORS.background,
           borderTopColor: COLORS.border,
-          height: 68,
-          paddingBottom: 10,
+          height: 66 + bottomPadding,
+          paddingBottom: bottomPadding,
           paddingTop: 8,
+          paddingHorizontal: Math.max(10, (width - 520) / 2),
+          elevation: 0,
         },
+        tabBarItemStyle: { borderRadius: 12, overflow: 'hidden', marginHorizontal: 3 },
+        tabBarActiveBackgroundColor: COLORS.normalBg,
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarLabelPosition: 'below-icon',
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '700',
+          fontSize: 10,
+          fontWeight: '600',
+          marginTop: 3,
         },
       }}
     >
@@ -36,25 +42,22 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Radar',
-          headerTitle: 'Econ Vision • Radar Urbano',
-          tabBarIcon: ({ color, size }) => <CloudRain color={color} size={size} />,
+          tabBarIcon: ({ color }) => <Radar color={color} size={21} strokeWidth={1.8} />,
         }}
       />
       <Tabs.Screen
         name="sensors"
         options={{
           title: 'Sensores',
-          headerTitle: 'Sensores IoT & Rotas',
-          tabBarIcon: ({ color, size }) => <Radio color={color} size={size} />,
+          tabBarIcon: ({ color }) => <Radio color={color} size={21} strokeWidth={1.8} />,
         }}
       />
       <Tabs.Screen
         name="report"
         options={{
           title: 'Reportar',
-          headerTitle: 'Alerta Colaborativo',
-          tabBarIcon: ({ color, size }) => (
-            <MessageSquareWarning color={color} size={size} />
+          tabBarIcon: ({ color }) => (
+            <MessageSquarePlus color={color} size={21} strokeWidth={1.8} />
           ),
         }}
       />
@@ -62,9 +65,9 @@ export default function TabLayout() {
         name="sos"
         options={{
           title: 'SOS',
-          headerTitle: 'Emergência & Guia',
-          tabBarActiveTintColor: '#F87171',
-          tabBarIcon: ({ color, size }) => <ShieldAlert color={color} size={size} />,
+          tabBarActiveTintColor: COLORS.criticoText,
+          tabBarActiveBackgroundColor: COLORS.criticoBg,
+          tabBarIcon: ({ color }) => <ShieldAlert color={color} size={21} strokeWidth={1.8} />,
         }}
       />
     </Tabs>
