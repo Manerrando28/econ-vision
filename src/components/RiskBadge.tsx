@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { AlertTriangle, CheckCircle2, OctagonAlert } from 'lucide-react-native';
 import { RiskLevel } from '../types';
 import { getRiskStyle } from '../theme/colors';
+import { BADGE_STYLES as styles } from '../theme/styles';
 
 interface RiskBadgeProps {
   level: RiskLevel;
@@ -34,19 +35,3 @@ export function RiskBadge({ level, label }: RiskBadgeProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 7,
-    gap: 5,
-  },
-  text: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-});

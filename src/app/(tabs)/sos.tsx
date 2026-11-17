@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Text, TouchableOpacity, View } from 'react-native';
 import { Car, Footprints, Phone, ShieldAlert, ZapOff } from 'lucide-react-native';
-import { PageIntro, Screen, SectionHeading } from '../../src/components/Screen';
-import { COLORS } from '../../src/theme/colors';
+import { PageIntro, Screen, SectionHeading } from '@/src/components/Screen';
+import { COLORS } from '@/src/theme/colors';
+import { SOS_STYLES as styles } from '@/src/theme/styles';
 
 const CONTACTS = [
   { number: '199', title: 'Defesa Civil', description: 'Alagamentos, deslizamentos e áreas de risco' },
@@ -76,24 +77,3 @@ export default function SosScreen() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  emergencyBanner: { backgroundColor: COLORS.criticoBg, borderWidth: 1, borderColor: '#60333D', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  bannerTitle: { color: COLORS.criticoText, fontSize: 12, fontWeight: '500', lineHeight: 19, flex: 1 },
-  callError: { color: COLORS.criticoText, fontSize: 13, lineHeight: 20 },
-  contacts: { gap: 12 },
-  contact: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 18, padding: 16, gap: 12, flexDirection: 'row', alignItems: 'center' },
-  contactTitle: { color: COLORS.textPrimary, fontSize: 15, fontWeight: '600' },
-  contactCopy: { flex: 1, gap: 5 },
-  numberBadge: { width: 64, minHeight: 64, borderRadius: 14, backgroundColor: COLORS.criticoBg, alignItems: 'center', justifyContent: 'center' },
-  number: { color: COLORS.criticoText, fontSize: 28, fontWeight: '600', letterSpacing: -1, fontVariant: ['tabular-nums'] },
-  contactDescription: { color: COLORS.textMuted, fontSize: 11, lineHeight: 18 },
-  tips: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 20, paddingHorizontal: 18 },
-  tip: { flexDirection: 'row', gap: 12, paddingVertical: 20 },
-  tipBorder: { borderTopWidth: 1, borderTopColor: COLORS.border },
-  tipIcon: { backgroundColor: COLORS.primaryDark, borderRadius: 12, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  tipCopy: { flex: 1, gap: 7 },
-  tipTitle: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '600', lineHeight: 21 },
-  tipText: { color: COLORS.textSecondary, fontSize: 13, lineHeight: 21 },
-  footer: { color: COLORS.textMuted, fontSize: 11, lineHeight: 18, textAlign: 'center' },
-});

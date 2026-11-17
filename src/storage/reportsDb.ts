@@ -1,78 +1,37 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CitizenReport } from '../types';
+import type { CitizenReport } from '../types';
+import { getReportsStore } from './reportsStore';
 
-const STORAGE_KEY = '@econ_vision:citizen_reports_v1';
-
-const SEED_REPORTS: CitizenReport[] = [
-  {
-    id: 'seed-1',
-    location: 'Av. Paulista, altura do nº 1106',
-    neighborhood: 'Bela Vista',
-    category: 'BUEIRO_ENTUPIDO',
-    severity: 'ATENCAO',
-    description: 'Boca de lobo obstruída por folhas e lixo acumulando água na faixa de pedestres.',
-    createdAt: 'Hoje, 18:40',
-    resolved: false,
-  },
-  {
-    id: 'seed-2',
-    location: 'Praça da Sé - Acesso Metrô',
-    neighborhood: 'Sé',
-    category: 'ALAGAMENTO',
-    severity: 'CRITICO',
-    description: 'Lâmina de água cobrindo a calçada, dificultando passagem de idosos e cadeirantes.',
-    createdAt: 'Hoje, 19:15',
-    resolved: false,
-  },
-];
-
-export async function getReports(): Promise<CitizenReport[]> {
-  try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_REPORTS));
-      return SEED_REPORTS;
-    }
-    return JSON.parse(raw);
-  } catch (error) {
-    console.error('Erro ao ler reportes:', error);
-    return SEED_REPORTS;
-  }
+export interface ReportsStore {
+  getAll(): Promise<CitizenReport[]>;
+  insert(report: CitizenReport): Promise<void>;
+  toggle(id: string): Promise<void>;
+  remove(id: string): Promise<void>;
 }
 
-export async function addReport(
-  report: Omit<CitizenReport, 'id' | 'createdAt' | 'resolved'>
-): Promise<CitizenReport[]> {
-  const current = await getReports();
-  const now = new Date();
-  const timeStr = `Hoje, ${String(now.getHours()).padStart(2, '0')}:${String(
-    now.getMinutes()
-  ).padStart(2, '0')}`;
+export async function getReports(): Promise<CitizenReport[]> {
+  const reports = await (await getReportsStore()).getAll();
+  return reports.sort((a, b) => (Number.parseInt(b.id, 10) || 0) - (Number.parseInt(a.id, 10) || 0));
+}
 
+export async function addReport(report: Omit<CitizenReport, 'id' | 'createdAt' | 'resolved'>): Promise<CitizenReport[]> {
+  if (!report.location.trim() || !report.neighborhood.trim()) throw new Error('Informe endereço e bairro.');
+  const now = new Date();
   const newReport: CitizenReport = {
     ...report,
-    id: Date.now().toString(),
-    createdAt: timeStr,
+    id: `${now.getTime()}-${Math.random().toString(36).slice(2, 9)}`,
+    createdAt: now.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
     resolved: false,
   };
-
-  const updated = [newReport, ...current];
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  return updated;
+  await (await getReportsStore()).insert(newReport);
+  return getReports();
 }
 
 export async function toggleReportResolved(id: string): Promise<CitizenReport[]> {
-  const current = await getReports();
-  const updated = current.map((item) =>
-    item.id === id ? { ...item, resolved: !item.resolved } : item
-  );
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  return updated;
+  await (await getReportsStore()).toggle(id);
+  return getReports();
 }
 
 export async function deleteReport(id: string): Promise<CitizenReport[]> {
-  const current = await getReports();
-  const updated = current.filter((item) => item.id !== id);
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  return updated;
+  await (await getReportsStore()).remove(id);
+  return getReports();
 }

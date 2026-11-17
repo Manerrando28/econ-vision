@@ -1,16 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
-  ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View, type TextInputInstance,
+  ActivityIndicator, Text, TextInput, TouchableOpacity, View, type TextInputInstance,
 } from 'react-native';
 import {
   ArrowRight, Check, CheckCircle2, Clock3, CloudRain, HardDrive,
   MapPin, Mountain, Plus, RotateCcw, Trash2, Waves,
 } from 'lucide-react-native';
-import { PageIntro, Screen, SectionHeading } from '../../src/components/Screen';
-import { RiskBadge } from '../../src/components/RiskBadge';
-import { COLORS } from '../../src/theme/colors';
-import { addReport, deleteReport, getReports, toggleReportResolved } from '../../src/storage/reportsDb';
-import type { CitizenReport, RiskLevel } from '../../src/types';
+import { PageIntro, Screen, SectionHeading } from '@/src/components/Screen';
+import { RiskBadge } from '@/src/components/RiskBadge';
+import { LoadError } from '@/src/components/LoadError';
+import { COLORS } from '@/src/theme/colors';
+import { REPORT_STYLES as styles } from '@/src/theme/styles';
+import { addReport, deleteReport, getReports, toggleReportResolved } from '@/src/storage/reportsDb';
+import { useAsyncResource } from '@/src/hooks/useAsyncResource';
+import type { CitizenReport, RiskLevel } from '@/src/types';
 
 const CATEGORIES = [
   { key: 'ALAGAMENTO', label: 'Alagamento', fullLabel: 'Rua alagada', icon: CloudRain },
@@ -20,8 +23,10 @@ const CATEGORIES = [
 type Notice = { tone: 'error' | 'success'; message: string };
 
 export default function ReportScreen() {
-  const [reports, setReports] = useState<CitizenReport[]>([]);
-  const [loading, setLoading] = useState(true);
+  const reportsResource = useAsyncResource(getReports);
+  const reports = reportsResource.data ?? [];
+  const setReports = reportsResource.setData;
+  const loading = reportsResource.loading;
   const [location, setLocation] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [description, setDescription] = useState('');
@@ -36,10 +41,6 @@ export default function ReportScreen() {
   const [listError, setListError] = useState<string | null>(null);
   const locationRef = useRef<TextInputInstance>(null);
   const neighborhoodRef = useRef<TextInputInstance>(null);
-
-  useEffect(() => {
-    void getReports().then(setReports).finally(() => setLoading(false));
-  }, []);
 
   const handleSave = async () => {
     if (saving) return;
@@ -97,6 +98,7 @@ export default function ReportScreen() {
         <HardDrive size={16} color={COLORS.primary} />
         <Text style={styles.localNoteText}>Seus registros ficam neste dispositivo e podem ser consultados offline.</Text>
       </View>
+      {reportsResource.error && <LoadError message="Não foi possível abrir o banco de dados local. Seus registros não foram apagados." onRetry={() => void reportsResource.reload()} />}
 
       <View style={styles.form}>
         <View style={styles.formHeading}>
@@ -217,12 +219,12 @@ export default function ReportScreen() {
           </View>
         )}
         <TouchableOpacity
-          style={[styles.submit, saving && styles.disabled]}
+          style={[styles.submit, (saving || loading || reportsResource.error) && styles.disabled]}
           onPress={handleSave}
-          disabled={saving}
+          disabled={saving || loading || reportsResource.error}
           accessibilityRole="button"
           accessibilityLabel="Salvar ocorrência neste dispositivo"
-          accessibilityState={{ disabled: saving, busy: saving }}
+          accessibilityState={{ disabled: saving || loading || reportsResource.error, busy: saving }}
         >
           {saving ? <ActivityIndicator color={COLORS.onPrimary} /> : <Plus size={19} color={COLORS.onPrimary} />}
           <Text style={styles.submitText}>{saving ? 'Salvando…' : 'Salvar ocorrência'}</Text>
@@ -234,7 +236,7 @@ export default function ReportScreen() {
       <SectionHeading title="Seus registros" subtitle={`${reports.length} no dispositivo · ${reports.filter((report) => !report.resolved).length} em aberto`} />
       {listError && <Text accessibilityRole="alert" style={styles.listError}>{listError}</Text>}
       {loading && <ActivityIndicator color={COLORS.primary} />}
-      {!loading && reports.length === 0 && (
+      {!loading && !reportsResource.error && reports.length === 0 && (
         <View style={styles.empty}>
           <MapPin size={28} color={COLORS.primary} />
           <Text style={styles.emptyTitle}>Nenhuma ocorrência por aqui</Text>
@@ -292,68 +294,3 @@ export default function ReportScreen() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  localNote: { flexDirection: 'row', gap: 10, paddingHorizontal: 2, alignItems: 'flex-start' },
-  localNoteText: { flex: 1, color: COLORS.textMuted, fontSize: 12, lineHeight: 19 },
-  form: { padding: 18, borderRadius: 22, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface, gap: 20 },
-  formHeading: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  plusIcon: { width: 34, height: 34, borderRadius: 11, backgroundColor: COLORS.primaryDark, alignItems: 'center', justifyContent: 'center' },
-  formTitle: { color: COLORS.textPrimary, fontSize: 18, fontWeight: '600', letterSpacing: -0.3 },
-  requiredHint: { color: COLORS.textMuted, fontSize: 10, marginTop: -12 },
-  field: { gap: 9 },
-  label: { color: COLORS.textSecondary, fontSize: 13, fontWeight: '600' },
-  asterisk: { color: COLORS.primary },
-  input: { backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14, minHeight: 50, fontSize: 16, color: COLORS.textPrimary },
-  inputFocused: { borderColor: COLORS.primary },
-  inputError: { borderColor: COLORS.criticoBorder },
-  fieldError: { color: COLORS.criticoText, fontSize: 11, lineHeight: 17 },
-  textArea: { minHeight: 108, textAlignVertical: 'top', lineHeight: 21 },
-  optionsRow: { flexDirection: 'row', gap: 8 },
-  category: { flex: 1, minHeight: 76, borderRadius: 12, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.background, paddingHorizontal: 3, paddingVertical: 12, gap: 8 },
-  optionActive: { borderColor: COLORS.primary, backgroundColor: COLORS.normalBg },
-  categoryText: { color: COLORS.textMuted, fontSize: 11, fontWeight: '500', textAlign: 'center' },
-  optionActiveText: { color: COLORS.primary },
-  severity: { flex: 1, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, padding: 12, gap: 7, backgroundColor: COLORS.background },
-  attentionActive: { borderColor: COLORS.atencaoBorder, backgroundColor: COLORS.atencaoBg },
-  criticalActive: { borderColor: COLORS.criticoBorder, backgroundColor: COLORS.criticoBg },
-  severityHeading: { flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap' },
-  radio: { width: 14, height: 14, borderWidth: 1, borderColor: COLORS.textMuted, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
-  radioDot: { width: 6, height: 6, borderRadius: 3 },
-  severityTitle: { color: COLORS.textSecondary, fontSize: 13, fontWeight: '600' },
-  severityDescription: { color: COLORS.textMuted, fontSize: 10, lineHeight: 16 },
-  labelRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
-  optional: { color: COLORS.textMuted, fontSize: 10 },
-  submit: { minHeight: 52, backgroundColor: COLORS.primary, borderRadius: 13, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
-  submitText: { color: COLORS.onPrimary, fontSize: 14, fontWeight: '700', flexShrink: 1 },
-  disabled: { opacity: 0.65 },
-  formFooter: { color: COLORS.textMuted, textAlign: 'center', fontSize: 10, lineHeight: 16, marginTop: -9 },
-  notice: { padding: 12, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  errorNotice: { backgroundColor: COLORS.criticoBg },
-  successNotice: { backgroundColor: COLORS.normalBg },
-  noticeText: { flex: 1, fontSize: 12, lineHeight: 19 },
-  listError: { color: COLORS.criticoText, fontSize: 12 },
-  empty: { backgroundColor: COLORS.surface, padding: 24, borderRadius: 18, alignItems: 'center', gap: 12 },
-  emptyTitle: { color: COLORS.textPrimary, fontSize: 15, fontWeight: '600', textAlign: 'center' },
-  emptyText: { color: COLORS.textMuted, fontSize: 12, lineHeight: 19, textAlign: 'center' },
-  reportCard: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: 20, padding: 18, gap: 12 },
-  resolvedCard: { borderColor: '#2A5043' },
-  reportTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
-  time: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  timeText: { color: COLORS.textMuted, fontSize: 10 },
-  reportLocation: { color: COLORS.textPrimary, fontSize: 16, lineHeight: 23, fontWeight: '600' },
-  reportMeta: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  reportMetaText: { color: COLORS.textMuted, fontSize: 11, flex: 1, lineHeight: 17 },
-  reportDescription: { color: COLORS.textSecondary, fontSize: 13, lineHeight: 21 },
-  reportActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: 4 },
-  resolveButton: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 7, flex: 1 },
-  resolveText: { color: COLORS.primary, fontSize: 12, fontWeight: '600', flexShrink: 1 },
-  deleteButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  deleteConfirmation: { backgroundColor: COLORS.criticoBg, padding: 12, borderRadius: 12, gap: 8 },
-  deleteQuestion: { color: COLORS.criticoText, fontSize: 12, lineHeight: 18 },
-  confirmActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
-  cancelButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
-  cancelText: { color: COLORS.textSecondary, fontSize: 12 },
-  confirmDeleteButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 16, backgroundColor: '#562B35', borderRadius: 8 },
-  confirmDeleteText: { color: COLORS.criticoText, fontSize: 12, fontWeight: '600' },
-});

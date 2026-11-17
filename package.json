@@ -10,6 +10,7 @@
     "expo-linking": "~58.0.17",
     "expo-router": "~58.0.31",
     "expo-splash-screen": "~58.0.14",
+    "expo-sqlite": "~58.0.17",
     "expo-status-bar": "~58.0.5",
     "expo-symbols": "~58.0.5",
     "expo-web-browser": "~58.0.8",
@@ -35,8 +36,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint",
-    "typecheck": "tsc --noEmit"
+    "lint": "expo lint src",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-sqlite --test tests/*.test.cjs"
   },
   "private": true
 }

@@ -1,49 +1,33 @@
-import { WeatherData } from '../types';
+import type { WeatherData } from '../types';
 
-// Coordenadas padrão: São Paulo - SP (Região Paulista / Centro)
-const DEFAULT_LAT = -23.5614;
-const DEFAULT_LON = -46.6559;
-
-export async function fetchLocalWeather(
-  lat: number = DEFAULT_LAT,
-  lon: number = DEFAULT_LON
-): Promise<WeatherData> {
+// Public, fixed coordinates: no citizen location or personal data is collected.
+export async function fetchLocalWeather(): Promise<WeatherData> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,precipitation,rain&hourly=precipitation_probability&forecast_days=1&timezone=America%2FSao_Paulo`;
-
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('Falha ao buscar dados meteorológicos');
-    }
-
+    const response = await fetch(
+      'https://api.open-meteo.com/v1/forecast?latitude=-23.5614&longitude=-46.6559&current=temperature_2m,precipitation,rain&hourly=precipitation_probability&forecast_days=1&timezone=America%2FSao_Paulo',
+      { signal: controller.signal },
+    );
+    if (!response.ok) throw new Error('O serviço de meteorologia está indisponível.');
     const data = await response.json();
-    const current = data.current;
-    const currentHour = new Date().getHours();
-    const rainProb = data.hourly?.precipitation_probability?.[currentHour] ?? 0;
-    const precipitation = current?.precipitation ?? 0;
-
-    let conditionText = 'Tempo estável e sem chuva';
-    if (precipitation > 5 || rainProb >= 75) {
-      conditionText = 'Alerta de chuva forte na região';
-    } else if (precipitation > 0 || rainProb >= 40) {
-      conditionText = 'Chuva leve a moderada prevista';
+    const temperature: unknown = data.current?.temperature_2m;
+    const precipitation: unknown = data.current?.precipitation;
+    const time: unknown = data.current?.time;
+    const hour = typeof time === 'string' ? Number(time.slice(11, 13)) : NaN;
+    const rainProbability: unknown = data.hourly?.precipitation_probability?.[hour];
+    if (typeof temperature !== 'number' || !Number.isFinite(temperature)
+      || typeof precipitation !== 'number' || !Number.isFinite(precipitation) || precipitation < 0
+      || typeof rainProbability !== 'number' || !Number.isFinite(rainProbability) || rainProbability < 0 || rainProbability > 100) {
+      throw new Error('O serviço retornou uma previsão incompleta.');
     }
-
-    return {
-      temperature: Math.round(current?.temperature_2m ?? 22),
-      precipitation,
-      rainProbability: rainProb,
-      conditionText,
-      isRaining: precipitation > 0,
-    };
-  } catch (error) {
-    console.warn('Usando fallback offline de clima:', error);
-    return {
-      temperature: 21,
-      precipitation: 2.4,
-      rainProbability: 65,
-      conditionText: 'Modo Offline: Atenção para pancadas de chuva',
-      isRaining: true,
-    };
+    const conditionText = precipitation > 5 || rainProbability >= 75
+      ? 'Possibilidade de chuva forte na região'
+      : precipitation > 0 || rainProbability >= 40
+        ? 'Chuva leve a moderada prevista'
+        : 'Tempo estável e sem chuva';
+    return { temperature: Math.round(temperature), precipitation, rainProbability, conditionText, isRaining: precipitation > 0 };
+  } finally {
+    clearTimeout(timeout);
   }
 }

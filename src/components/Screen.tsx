@@ -3,13 +3,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   type ScrollViewProps,
 } from 'react-native';
 import { useHeaderHeight } from 'expo-router/react-navigation';
-import { COLORS } from '../theme/colors';
+import { SCREEN_STYLES as styles } from '../theme/styles';
 
 type ScreenProps = Pick<ScrollViewProps, 'refreshControl'> & {
   children: ReactNode;
@@ -81,25 +80,3 @@ export function SectionHeading({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  content: {
-    width: '100%',
-    maxWidth: 560,
-    alignSelf: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 32,
-    gap: 20,
-  },
-  intro: { gap: 8 },
-  eyebrow: { color: COLORS.primary, fontSize: 10, fontWeight: '700', letterSpacing: 2 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  title: { color: COLORS.textPrimary, fontSize: 28, fontWeight: '700', letterSpacing: -0.8, flex: 1 },
-  description: { color: COLORS.textMuted, fontSize: 14, lineHeight: 21 },
-  sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  sectionCopy: { flex: 1, gap: 4 },
-  sectionTitle: { color: COLORS.textPrimary, fontSize: 18, fontWeight: '700', letterSpacing: -0.3 },
-  sectionSubtitle: { color: COLORS.textMuted, fontSize: 12, lineHeight: 18 },
-});
