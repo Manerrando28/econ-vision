@@ -6,6 +6,8 @@ O cidadão consulta o clima de São Paulo, visualiza exemplos de pontos de aten�
 
 > Esta versão usa dados públicos de meteorologia e sensores simulados. Não há conexão com sensores físicos, previsão própria de alagamentos, cálculo de rotas ou compartilhamento de ocorrências entre usuários.
 
+Documentação complementar em [`docs/README.md`](./docs/README.md).
+
 ## Equipe
 
 | Integrante | RM |
@@ -36,6 +38,12 @@ A proposta se relaciona aos **ODS 11** (Cidades e Comunidades Sustentáveis), **
 | **Sobre** | Fontes dos dados, armazenamento local e limites das informações. Acesso pelo nome Eco Vision no cabeçalho. |
 
 O clima é consultado na carga inicial do radar e quando o usuário solicita uma atualização; não há monitoramento contínuo em segundo plano. Falhas de consulta são exibidas com opção de tentar novamente. Se uma atualização falhar após uma consulta bem-sucedida, os valores anteriores podem permanecer visíveis com aviso de desatualização.
+
+## Capturas de tela
+
+| Radar | Sensores | Reportar | SOS | Sobre |
+| :---: | :---: | :---: | :---: | :---: |
+| <img src="./docs/screenshots/radar.png" alt="Tela Radar" width="190"> | <img src="./docs/screenshots/sensores.png" alt="Tela Sensores" width="190"> | <img src="./docs/screenshots/reportar.png" alt="Tela Reportar" width="190"> | <img src="./docs/screenshots/sos.png" alt="Tela SOS" width="190"> | <img src="./docs/screenshots/sobre.png" alt="Tela Sobre" width="190"> |
 
 ## Tecnologias e organização
 
@@ -166,6 +174,12 @@ A exportação gera arquivos em `dist/`; não gera um APK/IPA instalável nem co
 4. Feche e reabra o app para conferir a recuperação do registro. Marque-o como resolvido, reabra e exclua com confirmação.
 5. Atualize o radar sem internet para conferir o erro de clima. Reconecte e use **Tentar novamente**. Os dados locais continuam disponíveis com o app carregado.
 6. Confira teclado, fonte ampliada, leitor de tela e áreas seguras no dispositivo. Não faça ligações reais de emergência durante a demonstração.
+
+## Vídeo demonstrativo
+
+<video src="./GSMobileDevelopment2oSemestre2026EcoVision.mp4" controls width="640" poster="./docs/screenshots/radar.png"></video>
+
+Caso a reprodução embutida não carregue, abra o arquivo [`GSMobileDevelopment2oSemestre2026EcoVision.mp4`](./GSMobileDevelopment2oSemestre2026EcoVision.mp4).
 
 ## Agradecimentos
 
