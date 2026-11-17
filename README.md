@@ -43,7 +43,11 @@ O clima é consultado na carga inicial do radar e quando o usuário solicita uma
 
 | Radar | Sensores | Reportar | SOS | Sobre |
 | :---: | :---: | :---: | :---: | :---: |
-| <img src="./docs/screenshots/radar.png" alt="Tela Radar" width="190"> | <img src="./docs/screenshots/sensores.png" alt="Tela Sensores" width="190"> | <img src="./docs/screenshots/reportar.png" alt="Tela Reportar" width="190"> | <img src="./docs/screenshots/sos.png" alt="Tela SOS" width="190"> | <img src="./docs/screenshots/sobre.png" alt="Tela Sobre" width="190"> |
+| <img src="./docs/screenshots/radar.png" alt="Tela Radar" width="190"> | <img src="./docs/screenshots/sensors.png" alt="Tela Sensores" width="190"> | <img src="./docs/screenshots/reportar.png" alt="Tela Reportar" width="190"> | <img src="./docs/screenshots/sos.png" alt="Tela SOS" width="190"> | <img src="./docs/screenshots/sobre.png" alt="Tela Sobre" width="190"> |
+
+## Vídeo demonstrativo
+<a href="https://www.youtube.com/shorts/b-m32nA39_8">Link do vídeo no YouTube</a>
+Também disponível abrindo o arquivo [`GSMobileDevelopment2oSemestre2026EcoVision.mp4`](./GSMobileDevelopment2oSemestre2026EcoVision.mp4).
 
 ## Tecnologias e organização
 
@@ -174,12 +178,6 @@ A exportação gera arquivos em `dist/`; não gera um APK/IPA instalável nem co
 4. Feche e reabra o app para conferir a recuperação do registro. Marque-o como resolvido, reabra e exclua com confirmação.
 5. Atualize o radar sem internet para conferir o erro de clima. Reconecte e use **Tentar novamente**. Os dados locais continuam disponíveis com o app carregado.
 6. Confira teclado, fonte ampliada, leitor de tela e áreas seguras no dispositivo. Não faça ligações reais de emergência durante a demonstração.
-
-## Vídeo demonstrativo
-
-<video src="./GSMobileDevelopment2oSemestre2026EcoVision.mp4" controls width="640" poster="./docs/screenshots/radar.png"></video>
-
-Caso a reprodução embutida não carregue, abra o arquivo [`GSMobileDevelopment2oSemestre2026EcoVision.mp4`](./GSMobileDevelopment2oSemestre2026EcoVision.mp4).
 
 ## Agradecimentos
 
